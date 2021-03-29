@@ -1,0 +1,5 @@
+В итоге должно получиться что-то вроде:
+$sql = new MySQLFactory()
+$dbQueryBuilder = $sql->getQueryBuilder() - получаем конструктор запросов MySQL
+$dbConnection = $sql->getConnection() - подключение
+и т.д.?
