@@ -7,18 +7,18 @@ namespace app\src;
  */
 final class Clipboard
 {
-    private ?Clipboard $instance= null;
+    protected static ?Clipboard $instance= null;
     private string $text = '';
 
     private function __construct(){}
     private function __clone(){}
     private function __wakeup(){}
 
-    public function getInstance() :Clipboard{
-        if (!$this->instance) {
-            $this->instance = new static();
+    public static function getInstance() :Clipboard{
+        if (is_null(static::$instance)) {
+            static::$instance = new static();
         }
-        return $this->instance;
+        return static::$instance;
     }
 
     public function set(string $text){
@@ -27,5 +27,9 @@ final class Clipboard
 
     public function get(){
         return $this->text;
+    }
+
+    public function length(){
+        return mb_strlen($this->text);
     }
 }
