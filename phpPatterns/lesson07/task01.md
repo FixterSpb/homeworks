@@ -1,9 +1,7 @@
-/*
-1. Найти и указать в проекте Front Controller и расписать классы, которые с ним взаимодействуют.
-/*
+****1. Найти и указать в проекте Front Controller и расписать классы, которые с ним взаимодействуют.****
 
 Насколько я понял, класс, являющийся front-контроллером это class Kernel.
-Вероятно, в задани не имесь ввиду классы Symfony:
+Вероятно, в задании не имелись ввиду классы Symfony:
 Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 Symfony\Component\DependencyInjection\ContainerBuilder;
 Symfony\Component\Config\FileLocator;
@@ -19,8 +17,8 @@ Symfony\Component\Routing\RouteCollection;
 
 Непосредственно взаимодействует только с классом Registry
 
-Косвенно через конфиг взаимодействует с контроллерами:
-    MainController
-    ProductController
-    OrderController
-    UserController
+Косвенно через RouteCollection взаимодействует с контроллерами:
+    MainController,
+    ProductController,
+    OrderController,
+    UserController.
