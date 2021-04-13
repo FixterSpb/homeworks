@@ -17,7 +17,7 @@
 
         <?php foreach ($directory as $dir): ?>
         <?php if($dir == '.') continue;?>
-            <a class="item" href="/?path=<?=$dir->getRealPath()?>">
+            <a class="item" href="/?path=<?=$dir->getType() === 'dir' ? $dir->getRealPath() : $directory->getPathInfo()?>">
                 <img src="/img/<?=$dir->getType()?>.png" alt="directory">
                 <p class="dir-name"><?=$dir?></p>
             </a>
