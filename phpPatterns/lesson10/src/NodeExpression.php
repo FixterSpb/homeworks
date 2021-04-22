@@ -1,9 +1,10 @@
 <?php
 
 require "./NodeCalculate.php";
+require "./NodeNumber.php";
 
 
-class NodeExpression implements NodeCalculate
+class NodeExpression implements NodeCalculate, JsonSerializable
 {
     public const ACTIONS = [
         "+" => "addition",
@@ -14,14 +15,17 @@ class NodeExpression implements NodeCalculate
     ];
 
     private string $expression;
-    private NodeCalculate $left;
-    private NodeCalculate $right;
-    private string $action;
+    private ?NodeCalculate $left = null;
+    private ?NodeCalculate $right = null;
+    private string $action = '';
 
-    public function __construct(string $expression)
+    public function __construct(array $tokens)
     {
-        $this->expression = trim($expression);
-        $this->parse($expression);
+        $this->expression = implode(' ', $tokens);
+        if (preg_grep("/[\+\-*\/]/", $tokens)){
+            $this->init($tokens);
+        }
+
     }
 
     public function calc(): float
@@ -30,53 +34,122 @@ class NodeExpression implements NodeCalculate
         return self::$action(10, 2);
     }
 
-    private function parse(string $expression)
-    {
-        $leftExpression = '';
-        if($expression[0] === '(')
-        {
-            $leftExpression = $this->parseBrackets($expression);
+    private function init(array $tokens){
+        $posAction = $this->getPosAction($tokens);
+        $this->action = $tokens[$posAction];
+        $leftTokens = array_slice($tokens, 0, $posAction);
+        $rightTokens = array_slice($tokens, $posAction + 1);
+//        print_r($leftTokens);
+//        print_r($rightTokens);
+        if (!preg_grep("/[\+-\/*\^]/", $leftTokens)){
+            $value = implode(preg_grep("/\d+\.?\d*/", $leftTokens));
+            $this->left = new NodeNumber($value);
+        }else{
+
+            $this->left = new NodeExpression($leftTokens);
         }
 
 
-        if (preg_match("/[\+-]/", $expression)){
-            if($pos = strpos($expression, '+')){
-                $leftExpression .= substr($expression, 0, $pos - 1);
-            }else{
+        if (!preg_grep("/[\+-\/*\^]/", $rightTokens)){
+            $value = implode(preg_grep("/\d+\.?\d*/", $rightTokens));
+            $this->right = new NodeNumber($value);
+        }else{
+            $this->right = new NodeExpression($rightTokens);
+        }
+    }
 
+    private function getPosAction(array $tokens): int{
+        $countBrackets = 0;
+        $maxPriority = 0;
+        $actionIndex = 0;
+        $priorities = [
+            "+" => 3,
+            "-" => 3,
+            "*" => 2,
+            "/" => 2,
+            "^" => 1
+        ];
+
+        foreach ($tokens as $key => $value){
+            if (preg_match("/\d+\.*\d*/", $value)){
+                continue;
             }
-        }
-        if ($expression[0] === '(') {
-            $pos = strpos($expression, ')');
-            if ($pos < strlen($expression) - 1) {//Часть выражения заключено в скоби
-                $leftExpression = substr($expression, 1, $pos - 1);
-                $this->left = new NodeExpression();
 
-
-            } else { //Все выражение заключено в скобки
-                $this->parse(substr($expression), 1, strlen(substr() - 2));
+            if ($value === '('){
+                $countBrackets++;
+                continue;
             }
-        } else {//Если не скобка, значит число
+
+            if ($value === ')'){
+                $countBrackets--;
+                continue;
+            }
+
+            $priority = $priorities[$value] - 3 * $countBrackets;
+            if($priority >= $maxPriority){
+                $maxPriority = $priority;
+                $actionIndex = $key;
+            }
 
         }
 
+        return $actionIndex;
     }
 
-
-    private function parseBrackets(string &$expression)
-    {
-        $result = '';
-        if ($expression[0] === '(') {
-            $pos = strpos($expression, ')');
-            $result = substr($expression[0], 0, $pos);
-            $expression = substr($expression, $pos + 1);
-        }
-        return $result;
-    }
-
-    private function parseMulti(string &$expressiont){
-
-    }
+//    private function parse(string $expression)
+//    {
+//
+//
+//    }
+//
+//    private function parseExpression(string &$expression): string{
+//        $result = '';
+//        if ($expression[0] === '(') {
+//            return $this->parseBrackets($expression);
+//        }
+//
+//        return $this->parseNumber($expression);
+//    }
+//
+//    private function parseNumber(string &$expression): string{
+//
+//    }
+//
+//    private function parseBrackets(string &$expression)
+//    {
+//        $result = '';
+//        $countBrackets = 1;
+//        $pos = 1;
+//        $len = strlen($expression);
+//        while ($countBrackets !== 0 && $pos < $len) {
+//            $posOpenBracket = strpos($expression, '(', $pos) ?: $len;
+//            $posCloseBracket = strpos($expression, ')', $pos);
+//            if ($posCloseBracket < $posOpenBracket) {
+//                $pos = $posCloseBracket;
+//                $countBrackets--;
+//            } else {
+//                $pos = $posOpenBracket;
+//                $countBrackets++;
+//            }
+//        }
+//
+//        if ($pos === $len - 1){//Если все выражение заключено в скобки
+//            $expression = substr($expression, 1, $pos - 1);
+//            return $this->parseExpression($expression);
+//        }
+//        // Сейчас $pos указывает на последнюю закрывающую скобку - если скобки вложены
+//        // Теперь надо найти знак + или -
+//        $leftExpression = substr($expression, 0, $pos);
+//        $expression = substr($expression, $pos + 1);
+//        if ($expression[0] === '+' || $expression[0] === '-')
+//            return $result;
+//
+//    }
+//
+//    private function parseMulti(string &$expressiont)
+//    {
+//
+//    }
 
     private static function addition(float $a, float $b): float
     {
@@ -101,5 +174,16 @@ class NodeExpression implements NodeCalculate
     private static function exponentiation(float $a, float $b): float
     {
         return $a ** $b;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+           "type" => "expression",
+           "left" =>$this->left,
+           "right" => $this->right,
+           "action" => $this->action,
+           "expression" => $this->expression
+        ];
     }
 }
