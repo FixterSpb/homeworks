@@ -38,12 +38,6 @@ class NodeExpression implements NodeCalculate, JsonSerializable
 
     }
 
-    public function calc(): float
-    {
-        $action = self::ACTIONS['^'];
-        return self::$action(10, 2);
-    }
-
     private function init(array $tokens){
         $posAction = $this->getPosActionInTokens($tokens);
         $this->action = $tokens[$posAction];
@@ -104,6 +98,12 @@ class NodeExpression implements NodeCalculate, JsonSerializable
         }
 
         return $actionIndex;
+    }
+
+    public function calc(): float
+    {
+        $action = self::ACTIONS[$this->action];
+        return self::$action($this->left->calc(), $this->right->calc());
     }
 
     private static function addition(float $a, float $b): float

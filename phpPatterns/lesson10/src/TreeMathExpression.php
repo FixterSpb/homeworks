@@ -1,17 +1,36 @@
 <?php
 
 require_once "NodeCalculate.php";
+require_once "NodeExpression.php";
 
-class TreeMathException implements NodeCalculate, JsonSerializable
+class TreeMathExpression implements NodeCalculate, JsonSerializable
 {
+    private NodeExpression $root;
+    private string $expression;
+
+    public function __construct(string $expression)
+    {
+        $expression = str_replace(" ", "", $expression);
+        preg_match_all("/\d+\.*\d*|[\+-\/*\(\)\^]/", $expression, $tokens);
+//        print_r($tokens);
+//        die;
+        $this->root = new NodeExpression($tokens[0]);
+    }
 
     public function calc(): float
     {
-        // TODO: Implement calc() method.
+        return $this->root->calc();
     }
 
-    public function jsonSerialize()
+    public function getExpression(){
+        return $this->expression;
+    }
+
+    public function jsonSerialize(): array
     {
-        // TODO: Implement jsonSerialize() method.
+        return [
+            "expression" => $this->root,
+            "result" => $this->calc(),
+        ];
     }
 }
