@@ -6,9 +6,17 @@ phpPatterns/lesson04/vendor/
 .idea/
 
 phpPatterns/lesson06/task03/vendor/
+<<<<<<< Updated upstream
 
 phpPatterns/lesson06/task03_06/vendor/
 
 phpPatterns/lesson06/task03/apache-log/
+<<<<<<< HEAD
 
 phpPatterns/lesson08/task-01/vendor/
+=======
+=======
+
+phpPatterns/lesson06/task03_06/vendor/
+>>>>>>> Stashed changes
+>>>>>>> phpPatterns

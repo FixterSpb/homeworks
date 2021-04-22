@@ -12,10 +12,14 @@ class Editor
      */
     private string $text = '';
 
+<<<<<<< Updated upstream
     /**
      * @var CanceledCommand[]
      */
     private array $history = [];
+=======
+    public array $history = [];
+>>>>>>> Stashed changes
 
     public function __construct(string $path){
         $this->text = file_get_contents($path);
@@ -34,8 +38,19 @@ class Editor
         }
     }
 
+<<<<<<< Updated upstream
     public function undo(){
         if (count($this->history) === 0) return;
+=======
+        $this->text = $command->execute($this->text);
+
+        if (get_class($command) !== CopyCommand::class) {
+            array_push($this->history, $command);
+        }
+    }
+
+    public function undo(){
+>>>>>>> Stashed changes
         $this->text = (array_pop($this->history))->unExecute($this->text);
     }
 }
