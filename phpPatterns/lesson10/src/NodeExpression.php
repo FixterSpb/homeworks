@@ -21,10 +21,20 @@ class NodeExpression implements NodeCalculate, JsonSerializable
 
     public function __construct(array $tokens)
     {
-        $this->expression = implode(' ', $tokens);
-        if (preg_grep("/[\+\-*\/]/", $tokens)){
-            $this->init($tokens);
+        $expression = implode(' ', $tokens);
+        $countOpenBrackets = substr_count($expression, "(");
+        $countCloseBrackets = substr_count($expression, ")");
+        if ($countOpenBrackets !== $countCloseBrackets){
+            if($countOpenBrackets > $countCloseBrackets){
+                array_splice($tokens, 0, 1);
+            }else{
+                array_splice($tokens, -1, 1);
+            }
         }
+        $this->expression = implode(' ', $tokens);
+
+        $this->init($tokens);
+
 
     }
 
@@ -35,7 +45,7 @@ class NodeExpression implements NodeCalculate, JsonSerializable
     }
 
     private function init(array $tokens){
-        $posAction = $this->getPosAction($tokens);
+        $posAction = $this->getPosActionInTokens($tokens);
         $this->action = $tokens[$posAction];
         $leftTokens = array_slice($tokens, 0, $posAction);
         $rightTokens = array_slice($tokens, $posAction + 1);
@@ -58,7 +68,7 @@ class NodeExpression implements NodeCalculate, JsonSerializable
         }
     }
 
-    private function getPosAction(array $tokens): int{
+    private function getPosActionInTokens(array $tokens): int{
         $countBrackets = 0;
         $maxPriority = 0;
         $actionIndex = 0;
@@ -96,61 +106,6 @@ class NodeExpression implements NodeCalculate, JsonSerializable
         return $actionIndex;
     }
 
-//    private function parse(string $expression)
-//    {
-//
-//
-//    }
-//
-//    private function parseExpression(string &$expression): string{
-//        $result = '';
-//        if ($expression[0] === '(') {
-//            return $this->parseBrackets($expression);
-//        }
-//
-//        return $this->parseNumber($expression);
-//    }
-//
-//    private function parseNumber(string &$expression): string{
-//
-//    }
-//
-//    private function parseBrackets(string &$expression)
-//    {
-//        $result = '';
-//        $countBrackets = 1;
-//        $pos = 1;
-//        $len = strlen($expression);
-//        while ($countBrackets !== 0 && $pos < $len) {
-//            $posOpenBracket = strpos($expression, '(', $pos) ?: $len;
-//            $posCloseBracket = strpos($expression, ')', $pos);
-//            if ($posCloseBracket < $posOpenBracket) {
-//                $pos = $posCloseBracket;
-//                $countBrackets--;
-//            } else {
-//                $pos = $posOpenBracket;
-//                $countBrackets++;
-//            }
-//        }
-//
-//        if ($pos === $len - 1){//Если все выражение заключено в скобки
-//            $expression = substr($expression, 1, $pos - 1);
-//            return $this->parseExpression($expression);
-//        }
-//        // Сейчас $pos указывает на последнюю закрывающую скобку - если скобки вложены
-//        // Теперь надо найти знак + или -
-//        $leftExpression = substr($expression, 0, $pos);
-//        $expression = substr($expression, $pos + 1);
-//        if ($expression[0] === '+' || $expression[0] === '-')
-//            return $result;
-//
-//    }
-//
-//    private function parseMulti(string &$expressiont)
-//    {
-//
-//    }
-
     private static function addition(float $a, float $b): float
     {
         return $a + $b;
@@ -176,7 +131,7 @@ class NodeExpression implements NodeCalculate, JsonSerializable
         return $a ** $b;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return [
            "type" => "expression",
