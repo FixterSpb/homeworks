@@ -99,18 +99,33 @@ function renderNodes(canvasContext, nodes) {
     });
 }
 
-(async function run() {
+async function calc(expression) {
 
-    const tree = await (await fetch(API)).json();
-    console.log(tree);
+    const tree = await (await fetch(API + "?expression=" + expression)
+        // {
+        // method: "POST",
+        // mode: "no-cors",
+        // headers: {
+        //     "Content-Type": "application/json"
+        // },
+        // body: JSON.stringify({expression: expression}),
+    ).json();
+    // console.log(tree);
+    // return;
     const canvasContext = document.querySelector("canvas").getContext("2d");
 
     let canvasWidth, canvasHeight;
 
-    [, canvasWidth, canvasHeight] = fillNodesLines(tree.tree);
+    [, canvasWidth, canvasHeight] = fillNodesLines(tree.expression);
     canvasContext.canvas.width = canvasWidth + SPACE_X;
     canvasContext.canvas.height = canvasHeight + SPACE_Y;
 
     renderLines(canvasContext, lines);
     renderNodes(canvasContext, nodes);
-})();
+};
+
+document.querySelector("#calc").addEventListener("click", event => {
+    const expression = encodeURIComponent(document.querySelector("#expression").value);
+    console.log(JSON.stringify(expression));
+    calc(expression);
+});
