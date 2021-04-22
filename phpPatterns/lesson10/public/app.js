@@ -107,7 +107,7 @@ function renderNodes(canvasContext, nodes) {
 
     let canvasWidth, canvasHeight;
 
-    [, canvasWidth, canvasHeight] = fillNodesLines(tree);
+    [, canvasWidth, canvasHeight] = fillNodesLines(tree.tree);
     canvasContext.canvas.width = canvasWidth + SPACE_X;
     canvasContext.canvas.height = canvasHeight + SPACE_Y;
 
