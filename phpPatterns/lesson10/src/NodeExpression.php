@@ -24,10 +24,10 @@ class NodeExpression implements NodeCalculate, JsonSerializable
         $expression = implode(' ', $tokens);
         $countOpenBrackets = substr_count($expression, "(");
         $countCloseBrackets = substr_count($expression, ")");
-        if ($countOpenBrackets !== $countCloseBrackets){
-            if($countOpenBrackets > $countCloseBrackets){
+        if ($countOpenBrackets !== $countCloseBrackets) {
+            if ($countOpenBrackets > $countCloseBrackets) {
                 array_splice($tokens, 0, 1);
-            }else{
+            } else {
                 array_splice($tokens, -1, 1);
             }
         }
@@ -38,31 +38,33 @@ class NodeExpression implements NodeCalculate, JsonSerializable
 
     }
 
-    private function init(array $tokens){
+    private function init(array $tokens)
+    {
         $posAction = $this->getPosActionInTokens($tokens);
         $this->action = $tokens[$posAction];
         $leftTokens = array_slice($tokens, 0, $posAction);
         $rightTokens = array_slice($tokens, $posAction + 1);
 //        print_r($leftTokens);
 //        print_r($rightTokens);
-        if (!preg_grep("/[\+-\/*\^]/", $leftTokens)){
+        if (!preg_grep("/[\+-\/*\^]/", $leftTokens)) {
             $value = implode(preg_grep("/\d+\.?\d*/", $leftTokens));
             $this->left = new NodeNumber($value);
-        }else{
+        } else {
 
             $this->left = new NodeExpression($leftTokens);
         }
 
 
-        if (!preg_grep("/[\+-\/*\^]/", $rightTokens)){
+        if (!preg_grep("/[\+-\/*\^]/", $rightTokens)) {
             $value = implode(preg_grep("/\d+\.?\d*/", $rightTokens));
             $this->right = new NodeNumber($value);
-        }else{
+        } else {
             $this->right = new NodeExpression($rightTokens);
         }
     }
 
-    private function getPosActionInTokens(array $tokens): int{
+    private function getPosActionInTokens(array $tokens): int
+    {
         $countBrackets = 0;
         $maxPriority = 0;
         $actionIndex = 0;
@@ -74,23 +76,23 @@ class NodeExpression implements NodeCalculate, JsonSerializable
             "^" => 1
         ];
 
-        foreach ($tokens as $key => $value){
-            if (preg_match("/\d+\.*\d*/", $value)){
+        foreach ($tokens as $key => $value) {
+            if (preg_match("/\d+\.*\d*/", $value)) {
                 continue;
             }
 
-            if ($value === '('){
+            if ($value === '(') {
                 $countBrackets++;
                 continue;
             }
 
-            if ($value === ')'){
+            if ($value === ')') {
                 $countBrackets--;
                 continue;
             }
 
             $priority = $priorities[$value] - 3 * $countBrackets;
-            if($priority >= $maxPriority){
+            if ($priority >= $maxPriority) {
                 $maxPriority = $priority;
                 $actionIndex = $key;
             }
@@ -134,11 +136,12 @@ class NodeExpression implements NodeCalculate, JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-           "type" => "expression",
-           "left" =>$this->left,
-           "right" => $this->right,
-           "action" => $this->action,
-           "expression" => $this->expression
+            "type" => "expression",
+            "left" => $this->left,
+            "right" => $this->right,
+            "action" => $this->action,
+            "expression" => $this->expression,
+            "result" => $this->calc(),
         ];
     }
 }

@@ -1,9 +1,11 @@
 const API = 'http://127.0.0.1:8082/';
 
 const RADIUS = 30;
-const SPACE_X = RADIUS;
-const SPACE_Y = 70;
 const WIDTH_SYMBOL = 10;
+const HEIGHT_SYMBOL = 20;
+const HEIGHT_NODE = HEIGHT_SYMBOL * 4;
+const SPACE_X = RADIUS;
+const SPACE_Y = HEIGHT_NODE + 20;
 const nodes = [];
 const lines = [];
 
@@ -53,6 +55,7 @@ function addLine(start, end) {
 }
 
 function renderLines(canvasContext, lines) {
+
     lines.forEach(line => {
         canvasContext.beginPath();
         canvasContext.moveTo(line.start.x, line.start.y);
@@ -68,7 +71,7 @@ function renderNodes(canvasContext, nodes) {
         if (item.node.type === "expression") {
             value = item.node.expression;
             width = value.length * WIDTH_SYMBOL;
-            height = 30 * 2;
+            height = HEIGHT_NODE;
             color = "#777";
         } else {
             value = '' + item.node.value
@@ -90,7 +93,11 @@ function renderNodes(canvasContext, nodes) {
         canvasContext.textBaseline = "middle";
         canvasContext.font = "20px serif";
         if (item.node.type === "expression") {
-            canvasContext.fillText(item.node.expression, item.x, item.y);
+            canvasContext.fillText(item.node.expression, item.x, item.y - HEIGHT_SYMBOL);
+            canvasContext.fill();
+            canvasContext.beginPath();
+            canvasContext.fillStyle = "darkgreen";
+            canvasContext.fillText(item.node.result, item.x, item.y + HEIGHT_SYMBOL);
         } else {
             canvasContext.fillText(item.node.value, item.x, item.y);
         }
@@ -101,17 +108,8 @@ function renderNodes(canvasContext, nodes) {
 
 async function calc(expression) {
 
-    const tree = await (await fetch(API + "?expression=" + expression)
-        // {
-        // method: "POST",
-        // mode: "no-cors",
-        // headers: {
-        //     "Content-Type": "application/json"
-        // },
-        // body: JSON.stringify({expression: expression}),
-    ).json();
-    // console.log(tree);
-    // return;
+    const tree = await (await fetch(API + "?expression=" + expression)).json();
+    init();
     const canvasContext = document.querySelector("canvas").getContext("2d");
 
     let canvasWidth, canvasHeight;
@@ -119,13 +117,23 @@ async function calc(expression) {
     [, canvasWidth, canvasHeight] = fillNodesLines(tree.expression);
     canvasContext.canvas.width = canvasWidth + SPACE_X;
     canvasContext.canvas.height = canvasHeight + SPACE_Y;
+    canvasContext.clearRect(0, 0, canvasContext.canvas.width, canvasContext.canvas.height);
 
     renderLines(canvasContext, lines);
     renderNodes(canvasContext, nodes);
 };
 
-document.querySelector("#calc").addEventListener("click", event => {
+function init(){
+    nodes.splice(0);
+    lines.splice(0);
+}
+
+document.querySelector("#calc").addEventListener("click", clickHandler);
+
+async function clickHandler(){
     const expression = encodeURIComponent(document.querySelector("#expression").value);
     console.log(JSON.stringify(expression));
-    calc(expression);
-});
+    await calc(expression);
+}
+
+clickHandler();
